@@ -1,5 +1,5 @@
 package eu.reportincident.gateway_service.filter;
-
+/*
 import eu.reportincident.gateway_service.config.CookieProperties;
 import eu.reportincident.gateway_service.config.SecurityProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -136,3 +136,5 @@ public class AuthenticationGatewayFilter implements GlobalFilter, Ordered {
         }
     }
 }
+
+ */
