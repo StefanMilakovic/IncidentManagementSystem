@@ -3,6 +3,7 @@ package eu.reportincident.gateway_service.filter;
 import eu.reportincident.gateway_service.config.CookieProperties;
 import eu.reportincident.gateway_service.config.SecurityProperties;
 import eu.reportincident.gateway_service.security.JwtUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -21,6 +22,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     private final SecurityProperties securityProperties;
     private final CookieProperties cookieProperties;
 
+    @Value("${gateway.internal-secret}")
+    private String gatewaySecret;
+
     public JwtAuthenticationFilter(
             JwtUtil jwtUtil,
             SecurityProperties securityProperties,
@@ -30,6 +34,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         this.cookieProperties = cookieProperties;
     }
 
+    /*
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
@@ -69,11 +74,65 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                 .header("X-User-Email", email)
                 .header("X-User-Role", role)
+                .header("X-Gateway-Secret", gatewaySecret)
                 .build();
 
         // 6. Proslijedi zahtev sa headerima
         return chain.filter(exchange.mutate().request(modifiedRequest).build());
     }
+    */
+
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+
+        String path = exchange.getRequest().getURI().getPath();
+        HttpMethod method = exchange.getRequest().getMethod();
+
+        // OPTIONS – pusti
+        if (method == HttpMethod.OPTIONS) {
+            return chain.filter(exchange);
+        }
+
+        ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate()
+                .header("X-Gateway-Secret", gatewaySecret);
+
+        // PUBLIC endpoint → bez JWT-a
+        if (isPublicEndpoint(path, method)) {
+            return chain.filter(
+                    exchange.mutate().request(requestBuilder.build()).build()
+            );
+        }
+
+        // JWT iz cookie-a
+        HttpCookie cookie = exchange.getRequest()
+                .getCookies()
+                .getFirst(cookieProperties.getName());
+
+        if (cookie == null) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
+
+        String token = cookie.getValue();
+
+        if (!jwtUtil.isTokenValid(token)) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
+
+        String email = jwtUtil.extractEmail(token);
+        String role = jwtUtil.extractRole(token);
+
+        requestBuilder
+                .header("X-User-Email", email)
+                .header("X-User-Role", role);
+
+        return chain.filter(
+                exchange.mutate().request(requestBuilder.build()).build()
+        );
+    }
+
 
     /**
      * Proverava da li je endpoint javan (ne zahteva autentifikaciju)
