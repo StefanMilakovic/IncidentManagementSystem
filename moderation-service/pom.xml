@@ -110,13 +110,10 @@
 		</dependency>
 
 
-		<!-- ovo je za config server koji treba dodati-->
-		<!--
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
-		-->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
