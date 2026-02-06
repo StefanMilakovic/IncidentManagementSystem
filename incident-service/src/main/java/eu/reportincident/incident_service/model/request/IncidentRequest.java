@@ -1,7 +1,7 @@
 package eu.reportincident.incident_service.model.request;
 
-import eu.reportincident.incident_service.model.dto.IncidentImage;
-import eu.reportincident.incident_service.model.dto.Location;
+import eu.reportincident.incident_service.model.dto.IncidentImageDto;
+import eu.reportincident.incident_service.model.dto.LocationDto;
 import eu.reportincident.incident_service.model.enums.IncidentSubtype;
 import eu.reportincident.incident_service.model.enums.IncidentType;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 public class IncidentRequest {
     private IncidentType type;
     private IncidentSubtype subtype;
-    private Location location;
+    private LocationDto locationDto;
     private String description;
-    private List<IncidentImage> images;
+    private List<IncidentImageDto> images;
 }

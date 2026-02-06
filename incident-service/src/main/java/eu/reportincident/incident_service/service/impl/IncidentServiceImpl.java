@@ -1,3 +1,4 @@
+/*
 package eu.reportincident.incident_service.service.impl;
 
 //import eu.reportincident.incident_service.event.IncidentCreatedEvent;
@@ -38,15 +39,7 @@ public class IncidentServiceImpl implements IncidentService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    /*
-    @Autowired
-    public IncidentServiceImpl(IncidentEntityRepository incidentRepository, ModelMapper modelMapper, RabbitMQProducer rabbitMQProducer) {
-        this.incidentRepository = incidentRepository;
-        this.modelMapper = modelMapper;
-        this.rabbitMQProducer = rabbitMQProducer;
-    }
 
-     */
 
     @Autowired
     public IncidentServiceImpl(IncidentEntityRepository incidentRepository, ModelMapper modelMapper) {
@@ -168,3 +161,5 @@ public class IncidentServiceImpl implements IncidentService {
         }
     }
 }
+
+ */

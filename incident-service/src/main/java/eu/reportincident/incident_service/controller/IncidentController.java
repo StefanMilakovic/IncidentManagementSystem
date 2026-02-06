@@ -1,107 +1,78 @@
 package eu.reportincident.incident_service.controller;
 
-import eu.reportincident.incident_service.model.dto.FileUploadResponse;
-import eu.reportincident.incident_service.model.dto.Incident;
+import eu.reportincident.incident_service.model.dto.IncidentDto;
 import eu.reportincident.incident_service.model.enums.IncidentStatus;
-import eu.reportincident.incident_service.model.request.FilterRequest;
-import eu.reportincident.incident_service.model.request.IncidentRequest;
-import eu.reportincident.incident_service.model.request.IncidentStatusUpdateRequest;
 import eu.reportincident.incident_service.service.IncidentService;
-//import eu.reportincident.incident_service.service.S3Service;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/incidents")
+@RequiredArgsConstructor
 public class IncidentController {
 
     private final IncidentService incidentService;
-    //private final S3Service s3Service;
 
-    /*
-    @Autowired
-    public IncidentController(IncidentService incidentService, S3Service s3Service) {
-        this.incidentService = incidentService;
-        this.s3Service = s3Service;
-    }
-
-     */
-    @Autowired
-    public IncidentController(IncidentService incidentService) {
-        this.incidentService = incidentService;
+    @PostMapping
+    public ResponseEntity<IncidentDto> createIncident(@RequestBody IncidentDto incidentDto) {
+        IncidentDto created = incidentService.createIncident(incidentDto);
+        return ResponseEntity.ok(created);
     }
 
     @GetMapping
-    public Page<Incident> findByStatus(Pageable page, @RequestParam(value = "status", required = false) IncidentStatus status) {
-        if (status == null) {
-            return incidentService.findAll(page);
-        } else {
-            return incidentService.findByStatus(page, status);
-        }
+    public ResponseEntity<List<IncidentDto>> getAllIncidents() {
+        return ResponseEntity.ok(incidentService.getAllIncidents());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Incident> findById(@PathVariable long id) {
-        Optional<Incident> incident = Optional.ofNullable(incidentService.findById(id));
-        return incident.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    @GetMapping("/{id:\\d+}")
+    public ResponseEntity<IncidentDto> getIncidentById(@PathVariable Long id) {
+        return incidentService.getIncidentById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Incident> create(@RequestBody @Valid IncidentRequest incidentRequest) {
-        Incident incident = incidentService.create(incidentRequest);
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(incident.getId())
-                .toUri();
-
-        return ResponseEntity.created(location).body(incident);
+    @PutMapping("/{id}")
+    public ResponseEntity<IncidentDto> updateIncident(@PathVariable Long id, @RequestBody IncidentDto incidentDto) {
+        return incidentService.updateIncident(id, incidentDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<List<String>> uploadFiles(@RequestParam("file") MultipartFile[] files) {
-        List<String> fileUrls = new ArrayList<>();
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteIncident(@PathVariable Long id) {
+        incidentService.deleteIncident(id);
+        return ResponseEntity.noContent().build();
+    }
 
-        /*
-        for (MultipartFile file : files) {
-            try {
-                FileUploadResponse response = s3Service.uploadFile(file);
-                fileUrls.add(response.getFilePath());
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonList("Error uploading file"));
-            }
-        }
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<IncidentDto> updateIncidentStatus(
+            @PathVariable Long id,
+            @RequestBody IncidentStatus status) {
 
-         */
+        return incidentService.updateIncidentStatus(id, status)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(fileUrls);
+    @PostMapping("/search")
+    public ResponseEntity<List<IncidentDto>> getIncidentsByStatus(
+            @RequestBody IncidentStatus status) {
+
+        return ResponseEntity.ok(
+                incidentService.getIncidentsByStatus(status)
+        );
+    }
+
+    @GetMapping("/approved")
+    public ResponseEntity<List<IncidentDto>> getApprovedIncidents() {
+        return ResponseEntity.ok(
+                incidentService.getIncidentsByStatus(IncidentStatus.APPROVED)
+        );
     }
 
 
-    @PostMapping("/filter")
-    public Page<Incident> findByFilter(Pageable page, @RequestBody @Valid FilterRequest filterRequest) {
-        return incidentService.filter(page, filterRequest);
-    }
-
-    @PutMapping("/{id}/status")
-    public ResponseEntity<Incident> updateStatus(@PathVariable long id, @RequestBody IncidentStatusUpdateRequest status) {
-        Incident updatedIncident = incidentService.updateStatus(id, status);
-        return ResponseEntity.ok(updatedIncident);
-    }
 
 }
+

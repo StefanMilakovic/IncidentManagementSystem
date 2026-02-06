@@ -16,6 +16,6 @@ ENV PORT=$DEFAULT_PORT
 EXPOSE $PORT
 
 # Kopiranje JAR-a iz builder stage-a
-COPY --from=builder /app/target/incident-service-*.jar app.jar
+COPY --from=builder /app/target/incidentDto-service-*.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Table(name = "incident_status_history")
-public class IncidentStatusHistoryEntity {
+public class IncidentStatusHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class IncidentImage {
+public class IncidentImageDto {
 
     private Long id;
     private String imageUrl;

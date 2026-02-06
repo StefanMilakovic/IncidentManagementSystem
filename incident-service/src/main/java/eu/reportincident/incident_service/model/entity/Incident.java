@@ -1,6 +1,6 @@
 package eu.reportincident.incident_service.model.entity;
 
-import eu.reportincident.incident_service.model.dto.Location;
+import eu.reportincident.incident_service.model.dto.LocationDto;
 import eu.reportincident.incident_service.model.enums.IncidentStatus;
 import eu.reportincident.incident_service.model.enums.IncidentSubtype;
 import eu.reportincident.incident_service.model.enums.IncidentType;
@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "incident")
-public class IncidentEntity {
+public class Incident {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,13 +33,13 @@ public class IncidentEntity {
     private IncidentSubtype subtype;
 
     @Embedded
-    private Location location;
+    private LocationDto locationDto;
 
     @Column(nullable = false, length = 1000)
     private String description;
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private List<IncidentImageEntity> images = new ArrayList<>();
+    private List<IncidentImage> images = new ArrayList<>();
 
     private LocalDateTime reportedAt;
 

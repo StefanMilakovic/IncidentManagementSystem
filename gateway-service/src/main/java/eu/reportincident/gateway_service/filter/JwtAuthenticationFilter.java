@@ -34,55 +34,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         this.cookieProperties = cookieProperties;
     }
 
-    /*
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String path = exchange.getRequest().getURI().getPath();
-        HttpMethod method = exchange.getRequest().getMethod();
-
-        // 1. OPTIONS requests - samo propusti (CORS preflight)
-        if (method == HttpMethod.OPTIONS) {
-            return chain.filter(exchange);
-        }
-
-        // 2. Public endpoints - propusti bez provere JWT-a
-        if (isPublicEndpoint(path, method)) {
-            return chain.filter(exchange);
-        }
-
-        // 3. Izvuci JWT iz cookie-a
-        HttpCookie cookie = exchange.getRequest().getCookies()
-                .getFirst(cookieProperties.getName());
-
-        if (cookie == null) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
-        }
-
-        String token = cookie.getValue();
-
-        // 4. Validiraj token
-        if (!jwtUtil.isTokenValid(token)) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
-        }
-
-        // 5. Izvuci user informacije i dodaj u headere
-        String email = jwtUtil.extractEmail(token);
-        String role = jwtUtil.extractRole(token);
-
-        ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
-                .header("X-User-Email", email)
-                .header("X-User-Role", role)
-                .header("X-Gateway-Secret", gatewaySecret)
-                .build();
-
-        // 6. Proslijedi zahtev sa headerima
-        return chain.filter(exchange.mutate().request(modifiedRequest).build());
-    }
-    */
-
-
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
@@ -133,29 +84,21 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         );
     }
 
-
-    /**
-     * Proverava da li je endpoint javan (ne zahteva autentifikaciju)
-     */
     private boolean isPublicEndpoint(String path, HttpMethod method) {
-        // OAuth2 login flow (Google OAuth)
         if (path.startsWith("/login") || path.startsWith("/oauth2")) {
             return true;
         }
 
-        // Auth service endpoints
         if (path.startsWith("/api/v1/auth/login") ||
                 path.startsWith("/api/v1/auth/register") ||
                 path.startsWith("/api/v1/auth/logout")) {
             return true;
         }
 
-        // GET /api/v1/incidents je public (čitanje), ostalo zahteva auth
-        if (path.startsWith("/api/v1/incidents")) {
+        if (path.startsWith("/api/v1/incidents/approved")) {
             return method == HttpMethod.GET;
         }
 
-        // Ostali custom public endpoints iz konfiguracije
         return securityProperties.getPublicEndpoints().stream()
                 .anyMatch(path::startsWith);
     }

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class FileUploadResponse {
+public class FileUploadResponseDto {
     private String filePath;
     private LocalDateTime dateTime;
 }

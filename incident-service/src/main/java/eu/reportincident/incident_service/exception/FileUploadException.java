@@ -1,3 +1,4 @@
+/*
 package eu.reportincident.incident_service.exception;
 
 public class FileUploadException extends RuntimeException {
@@ -6,3 +7,5 @@ public class FileUploadException extends RuntimeException {
         super(message);
     }
 }
+
+ */

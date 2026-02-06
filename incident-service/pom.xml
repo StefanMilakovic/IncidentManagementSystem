@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>eu.reportincident</groupId>
-	<artifactId>incident-service</artifactId>
+	<artifactId>incidentDto-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>incident-service</name>
+	<name>incidentDto-service</name>
 	<description>Incident service project</description>
 	<url/>
 	<licenses>

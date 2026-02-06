@@ -1,8 +1,8 @@
-package eu.reportincident.incident_service.model.dto;
+package eu.reportincident.moderation_service.model.dto;
 
-import eu.reportincident.incident_service.model.enums.IncidentStatus;
-import eu.reportincident.incident_service.model.enums.IncidentSubtype;
-import eu.reportincident.incident_service.model.enums.IncidentType;
+import eu.reportincident.moderation_service.model.enums.IncidentStatus;
+import eu.reportincident.moderation_service.model.enums.IncidentSubtype;
+import eu.reportincident.moderation_service.model.enums.IncidentType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,14 +14,15 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Incident implements Serializable {
+public class IncidentDto implements Serializable {
 
     private Long id;
     private IncidentType type;
     private IncidentSubtype subtype;
-    private Location location;
+    private LocationDto location;
     private String description;
-    private List<IncidentImage> images;
+    private List<IncidentImageDto> images;
     private LocalDateTime reportedAt;
     private IncidentStatus status;
 }
+
