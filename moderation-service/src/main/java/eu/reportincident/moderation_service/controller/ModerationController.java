@@ -15,47 +15,37 @@ public class ModerationController {
 
     private final ModerationService moderationService;
 
-    @PostMapping("/create")  // ← OVO JE NEDOSTAJALO
-    public ResponseEntity<IncidentStatusHistoryDto> create(
-            @RequestBody IncidentStatusHistoryDto dto) {
+    @PostMapping("/create")
+    public ResponseEntity<IncidentStatusHistoryDto> create(@RequestBody IncidentStatusHistoryDto dto) {
         return ResponseEntity.ok(moderationService.createStatusHistory(dto));
     }
 
-    @GetMapping  // ← OVO JE DOBRO
+    @GetMapping
     public ResponseEntity<List<IncidentStatusHistoryDto>> getAll() {
         return ResponseEntity.ok(moderationService.getAll());
     }
 
-    @GetMapping("/{id:\\d+}")  // ← PROMENJENO SA /{id:\\d+} i GET umesto POST zaById
-    public ResponseEntity<IncidentStatusHistoryDto> getById(
-            @PathVariable Long id) {  // ← PathVariable umesto RequestBody
-
+    @GetMapping("/{id:\\d+}")
+    public ResponseEntity<IncidentStatusHistoryDto> getById(@PathVariable Long id) {
         return moderationService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/incident")
-    public ResponseEntity<List<IncidentStatusHistoryDto>> getByIncidentId(
-            @RequestBody Long incidentId) {
-
+    public ResponseEntity<List<IncidentStatusHistoryDto>> getByIncidentId(@RequestBody Long incidentId) {
         return ResponseEntity.ok(moderationService.getByIncidentId(incidentId));
     }
 
     @PostMapping("/update")
-    public ResponseEntity<IncidentStatusHistoryDto> update(
-            @RequestParam Long id,
-            @RequestBody IncidentStatusHistoryDto dto) {
-
+    public ResponseEntity<IncidentStatusHistoryDto> update(@RequestParam Long id, @RequestBody IncidentStatusHistoryDto dto) {
         return moderationService.update(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}")  // ← PROMENJENO na DELETE metodu sa PathVariable
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id) {  // ← PathVariable umesto RequestBody
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         moderationService.delete(id);
         return ResponseEntity.noContent().build();
     }

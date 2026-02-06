@@ -40,7 +40,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
 
-        // OPTIONS – pusti
         if (method == HttpMethod.OPTIONS) {
             return chain.filter(exchange);
         }
@@ -48,14 +47,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate()
                 .header("X-Gateway-Secret", gatewaySecret);
 
-        // PUBLIC endpoint → bez JWT-a
         if (isPublicEndpoint(path, method)) {
             return chain.filter(
                     exchange.mutate().request(requestBuilder.build()).build()
             );
         }
 
-        // JWT iz cookie-a
         HttpCookie cookie = exchange.getRequest()
                 .getCookies()
                 .getFirst(cookieProperties.getName());

@@ -15,13 +15,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE) // ← OVDE JE KLJUČ - izvršava se PRVI
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GatewayAuthFilter extends OncePerRequestFilter {
 
     @Value("${gateway.internal-secret}")
     private String gatewaySecret;
 
-    // Lista endpoint-a koje NE PROVERAVAMO (Eureka health checks)
     private static final List<String> HEALTH_CHECK_PATHS = Arrays.asList(
             "/actuator/health",
             "/actuator/info"
@@ -36,13 +35,11 @@ public class GatewayAuthFilter extends OncePerRequestFilter {
 
         String requestUri = request.getRequestURI();
 
-        // Dozvoli samo health check endpoint-e bez gateway header-a
         if (isHealthCheckEndpoint(requestUri)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // SVE OSTALO MORA IMATI GATEWAY HEADER
         String secretHeader = request.getHeader("X-Gateway-Secret");
 
         if (secretHeader == null || !secretHeader.equals(gatewaySecret)) {

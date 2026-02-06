@@ -1,6 +1,5 @@
 package eu.reportincident.moderation_service.model.entity;
 
-
 import eu.reportincident.moderation_service.model.enums.IncidentStatus;
 import jakarta.persistence.*;
 import lombok.*;

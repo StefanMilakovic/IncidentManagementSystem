@@ -16,7 +16,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-
     //test
     private final JwtUtil jwtUtil;
 
