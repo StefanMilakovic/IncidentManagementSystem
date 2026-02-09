@@ -1,5 +1,5 @@
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY out/artifacts/config_server_jar/config-server.jar app.jar
-EXPOSE 8888
+COPY out/artifacts/gateway_service_jar/gateway-service.jar app.jar
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

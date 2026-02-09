@@ -1,0 +1,425 @@
+<div style="display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
+  <app-navbar></app-navbar>
+
+  <div class="incidents-container" style="flex: 1; position: relative; overflow: hidden; min-height: 0;">
+  <!-- Map View -->
+  <app-map-view
+    [incidents]="filteredIncidents"
+    [enableLocationPicker]="isSelectingLocation"
+    (locationSelected)="onLocationSelected($event)">
+  </app-map-view>
+
+  <!-- Floating Add Button - Hide when selecting location -->
+    @if (!isSelectingLocation) {
+      <button
+        class="btn bg-warning position-absolute shadow d-flex align-items-center gap-2 rounded-pill px-4 py-2"
+        style="bottom: 24px; left: 24px; z-index: 1000;"
+        (click)="openAddDialog()"
+        title="Report New Incident">
+        <i class="bi bi-plus-circle"></i>
+        <span>Report New Incident</span>
+      </button>
+    }
+
+
+    <!-- Floating Filter Button - Conditionally Visible -->
+  <button
+    *ngIf="!isSelectingLocation && !showFilterDialog"
+    class="btn position-absolute bg-primary text-white shadow d-flex align-items-center gap-2 rounded-pill px-4 py-2"
+    style="top: 24px; right: 24px; z-index: 1000;"
+    (click)="toggleFilterDialog()"
+    title="Filter Incidents">
+    <i class="bi bi-funnel"></i>
+    <span>Filter</span>
+  </button>
+
+  <!-- Location Selection Instruction - Show in top-left corner when selecting location -->
+  <div
+    *ngIf="isSelectingLocation"
+    class="position-absolute bg-white shadow-lg rounded-3 p-4"
+    style="top: 24px; left: 24px; z-index: 1000; max-width: 350px;">
+    <div class="text-start">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-geo-alt-fill text-primary fs-4"></i>
+        <h5 class="fw-semibold mb-0">Select Location</h5>
+      </div>
+      <p class="text-muted small mb-3">Click anywhere on the map to set the incident location</p>
+      <div class="d-flex justify-content-center">
+        <button
+          class="btn d-flex align-items-center gap-2 btn-sm bg-danger bg-opacity-10 text-dark rounded-pill border-0 px-3 py-2"
+          (click)="cancelLocationSelection()">
+          <i class="bi bi-x-circle"></i>
+          Cancel Selection
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Panel - Hide when selecting location -->
+    <!-- Filter Panel - Hide when selecting location -->
+    @if (!isSelectingLocation) {
+      <div
+        class="position-absolute bg-white shadow-lg rounded-3 overflow-auto"
+        [class.d-none]="!showFilterDialog"
+        style="top: 24px; right: 24px; width: 350px; max-height: calc(100vh - 120px); z-index: 999;">
+
+        <!-- Filter Header -->
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+          <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-funnel me-2 text-primary"></i>
+            Filters
+          </h5>
+          <button
+            class="btn-close"
+            (click)="toggleFilterDialog()"
+            aria-label="Close"></button>
+        </div>
+
+        <div class="p-3">
+          <!-- Status Filter -->
+          <div class="mb-4">
+            <h6 class="text-muted text-uppercase fw-semibold small mb-3">Status</h6>
+            <div class="d-flex flex-wrap gap-2">
+              @for (status of incidentStatuses; track status) {
+                <button
+                  class="btn btn-sm rounded-pill px-3 text-capitalize"
+                  [class.btn-primary]="selectedStatuses.includes(status)"
+                  [class.bg-primary]="selectedStatuses.includes(status)"
+                  [class.bg-opacity-10]="selectedStatuses.includes(status)"
+                  [class.text-primary]="selectedStatuses.includes(status)"
+                  [class.bg-light]="!selectedStatuses.includes(status)"
+                  [class.text-dark]="!selectedStatuses.includes(status)"
+                  (click)="toggleStatusFilter(status)">
+                  {{status.toLowerCase()}}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Time Range Filter -->
+          <div class="mb-4">
+            <h6 class="text-muted text-uppercase fw-semibold small mb-3">Time Period</h6>
+            <div class="d-flex flex-wrap gap-2">
+              @for (range of timeRanges; track range.value) {
+                <button
+                  class="btn btn-sm rounded-pill px-3"
+                  [class.btn-primary]="selectedTimeRange === range.value"
+                  [class.bg-primary]="selectedTimeRange === range.value"
+                  [class.bg-opacity-10]="selectedTimeRange === range.value"
+                  [class.text-primary]="selectedTimeRange === range.value"
+                  [class.bg-light]="selectedTimeRange !== range.value"
+                  [class.text-dark]="selectedTimeRange !== range.value"
+                  (click)="setTimeRange(range.value)">
+                  {{range.label}}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Type Filter -->
+          <div class="mb-4">
+            <h6 class="text-muted text-uppercase fw-semibold small mb-3">Incident Type</h6>
+            <div class="d-flex flex-wrap gap-2">
+              @for (type of incidentTypes; track type) {
+                <button
+                  class="btn btn-sm rounded-pill px-3"
+                  [class.btn-success]="selectedTypes.includes(type)"
+                  [class.bg-success]="selectedTypes.includes(type)"
+                  [class.bg-opacity-10]="selectedTypes.includes(type)"
+                  [class.text-success]="selectedTypes.includes(type)"
+                  [class.bg-light]="!selectedTypes.includes(type)"
+                  [class.text-dark]="!selectedTypes.includes(type)"
+                  (click)="toggleTypeFilter(type)">
+                  {{getIncidentTypeLabel(type)}}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Subtype Filter -->
+          <div class="mb-4">
+            <h6 class="text-muted text-uppercase fw-semibold small mb-3">Incident Subtype</h6>
+            <div class="d-flex flex-wrap gap-2">
+              @for (subtype of incidentSubtypes; track subtype) {
+                <button
+                  class="btn btn-sm rounded-pill px-3"
+                  [class.btn-warning]="selectedSubtypes.includes(subtype)"
+                  [class.bg-warning]="selectedSubtypes.includes(subtype)"
+                  [class.bg-opacity-10]="selectedSubtypes.includes(subtype)"
+                  [class.text-warning]="selectedSubtypes.includes(subtype)"
+                  [class.bg-light]="!selectedSubtypes.includes(subtype)"
+                  [class.text-dark]="!selectedSubtypes.includes(subtype)"
+                  (click)="toggleSubtypeFilter(subtype)">
+                  {{getIncidentSubtypeLabel(subtype)}}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Clear Filters Button -->
+          <button
+            class="btn btn-sm bg-danger bg-opacity-10 text-dark rounded-pill w-100 d-flex align-items-center justify-content-center gap-2"
+            (click)="clearFilters()">
+            <i class="bi bi-x-circle"></i>
+            Clear All Filters
+          </button>
+        </div>
+      </div>
+    }
+
+  <!-- Add Incident Dialog -->
+  <div
+    class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+    [class.d-none]="!showAddDialog || isSelectingLocation"
+    style="background: rgba(0, 0, 0, 0.5); z-index: 2000;"
+    (click)="closeAddDialog()">
+
+    <div
+      class="bg-white rounded-3 shadow-lg"
+      style="width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;"
+      (click)="$event.stopPropagation()">
+
+      <!-- Dialog Header -->
+      <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+        <h4 class="mb-0 fw-semibold d-flex align-items-center gap-2">
+          <i class="bi bi-plus-circle text-warning align-middle"></i>
+          Report New Incident
+        </h4>
+
+        <button
+          class="btn-close"
+          (click)="closeAddDialog()"
+          aria-label="Close"></button>
+      </div>
+
+      <!-- Dialog Content -->
+      <div class="p-4">
+        <form #incidentForm="ngForm">
+          <!-- Type Selection -->
+          <!-- Type Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Incident Type</label>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                *ngFor="let type of incidentTypes"
+                type="button"
+                class="btn btn-sm rounded-pill px-3"
+                [class.btn-success]="newIncident.type === type"
+                [class.bg-success]="newIncident.type === type"
+                [class.bg-opacity-10]="newIncident.type === type"
+                [class.text-success]="newIncident.type === type"
+                [class.bg-light]="newIncident.type !== type"
+                [class.text-dark]="newIncident.type !== type"
+                (click)="newIncident.type = type">
+                {{ getIncidentTypeLabel(type) }}
+              </button>
+            </div>
+          </div>
+
+
+          <!-- Subtype Selection -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold mb-0">
+                Incident Subtype <span class="text-muted">(Optional)</span>
+              </label>
+
+              <button
+                *ngIf="newIncident.subtype"
+                type="button"
+                class="btn btn-sm text-danger p-0 d-flex align-items-center gap-1"
+                (click)="newIncident.subtype = undefined">
+                <i class="bi bi-x-circle"></i>
+                Clear
+              </button>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                *ngFor="let subtype of incidentSubtypes"
+                type="button"
+                class="btn btn-sm rounded-pill px-3"
+                [class.btn-warning]="newIncident.subtype === subtype"
+                [class.bg-warning]="newIncident.subtype === subtype"
+                [class.bg-opacity-10]="newIncident.subtype === subtype"
+                [class.text-warning]="newIncident.subtype === subtype"
+                [class.bg-light]="newIncident.subtype !== subtype"
+                [class.text-dark]="newIncident.subtype !== subtype"
+                (click)="newIncident.subtype = subtype">
+                {{ getIncidentSubtypeLabel(subtype) }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Location Selection -->
+          <div class="mb-3 shadow-sm">
+            <label class="form-label fw-semibold">Location</label>
+
+            <div class="border rounded-3 p-3 mb-2">
+              <p class="text-muted small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                Choose how to set the incident location
+              </p>
+
+              <div class="d-flex flex-column align-items-center gap-2">
+                <button
+                  type="button"
+                  class="btn btn-sm bg-secondary bg-opacity-10 text-dark rounded-pill px-3
+           d-flex align-items-center justify-content-center gap-2"
+                  style="width: 240px;"
+                  (click)="useCurrentLocation()">
+                  <i class="bi bi-crosshair"></i>
+                  Use My Current Location
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-sm bg-secondary bg-opacity-10 text-dark rounded-pill px-3
+           d-flex align-items-center justify-content-center gap-2"
+                  style="width: 240px;"
+                  (click)="selectLocationOnMap()">
+                  <i class="bi bi-map"></i>
+                  Select Location on Map
+                </button>
+              </div>
+
+
+            </div>
+
+
+            <!-- Show selected location -->
+            <div *ngIf="locationSelected" class="alert alert-success mb-0">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <i class="bi bi-check-circle me-2"></i>
+                  <strong>Location Selected</strong>
+                  <div class="mt-2 small">
+                    <strong>Coordinates:</strong><br>
+                    Lat: {{newIncident.location?.latitude | number:'1.5-5'}},
+                    Lng: {{newIncident.location?.longitude | number:'1.5-5'}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea
+              [(ngModel)]="newIncident.description"
+              name="description"
+              class="form-control rounded-3 border shadow-sm"
+              rows="4"
+              style="resize: none;"
+              placeholder="Describe the incident"></textarea>
+          </div>
+
+        </form>
+
+        <!-- Photos -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Photos</label>
+
+          <!-- Hidden file input -->
+          <input
+            type="file"
+            #fileInput
+            class="d-none"
+            multiple
+            accept="image/*"
+            (change)="onFilesSelected($event)">
+
+          <!-- Upload button - hidden once max reached -->
+          <button
+            *ngIf="selectedFiles.length < maxPhotos"
+            type="button"
+            class="btn btn-sm bg-secondary bg-opacity-10 text-dark rounded-pill px-4 d-flex align-items-center gap-2"
+            (click)="fileInput.click()">
+            <i class="bi bi-camera"></i>
+            Add Photos
+          </button>
+
+          <!-- Preview Grid -->
+          <div *ngIf="selectedFiles.length > 0" class="row row-cols-3 g-2 mt-2">
+            <div *ngFor="let photo of selectedFiles; let i = index" class="col">
+              <div class="position-relative border rounded-3 overflow-hidden" style="aspect-ratio: 1;">
+                <img [src]="photo.preview" class="w-100 h-100 object-fit-cover">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle d-flex align-items-center justify-content-center p-0"
+                  style="width: 24px; height: 24px; margin: 4px;"
+                  (click)="removePhoto(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo count info -->
+          <p class="text-muted small mb-0 mt-2">
+            <i class="bi bi-info-circle me-1"></i>
+            {{selectedFiles.length}}/{{maxPhotos}} photos added
+          </p>
+        </div>
+      </div>
+
+
+      <!-- Dialog Footer -->
+      <div class="p-4 border-top d-flex justify-content-end gap-2">
+        <button
+          class="btn btn-sm bg-secondary bg-opacity-10 text-dark rounded-pill px-4 d-flex align-items-center gap-2"
+          (click)="closeAddDialog()">
+          <i class="bi bi-x-lg"></i>
+          Cancel
+        </button>
+        <button
+          class="btn btn-sm bg-success bg-opacity-25 text-dark rounded-pill px-4 d-flex align-items-center gap-2"
+          [disabled]="!incidentForm.valid || !locationSelected"
+          (click)="submitIncident()">
+          <i class="bi bi-check-lg"></i>
+          Report Incident
+        </button>
+      </div>
+
+    </div>
+
+
+
+  </div>
+
+  <!-- Confirmation Dialog -->
+  <div
+    *ngIf="showConfirmationDialog"
+    class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+    style="background: rgba(0, 0, 0, 0.5); z-index: 2000;"
+    (click)="closeConfirmationDialog()">
+
+    <div
+      class="bg-white rounded-3 shadow-lg text-center p-3"
+      style="width: 90%; max-width: 500px;"
+      (click)="$event.stopPropagation()">
+
+      <div class="mb-4">
+        <i class="bi bi-check-circle text-success fs-1"></i>
+      </div>
+
+      <h4 class="fw-semibold mb-3">Thank You for Reporting the Incident</h4>
+
+      <p class="text-muted mb-4">
+        Your incident has been submitted successfully and will become visible once reviewed by a moderator.
+        Thank you for helping keep the community safe!
+      </p>
+
+      <button
+        class="btn btn-sm bg-success bg-opacity-25 rounded-pill px-4 d-flex align-items-center justify-content-center gap-2 mx-auto"
+        (click)="closeConfirmationDialog()">
+        <i class="bi bi-check-lg"></i>
+        Got it
+      </button>
+    </div>
+  </div>
+
+</div>
+</div>

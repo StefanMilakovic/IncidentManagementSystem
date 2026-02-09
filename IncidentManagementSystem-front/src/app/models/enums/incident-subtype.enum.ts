@@ -1,0 +1,6 @@
+export enum IncidentSubtype {
+  CAR_ACCIDENT = 'CAR_ACCIDENT',
+  BUILDING_FIRE = 'BUILDING_FIRE',
+  ROBBERY = 'ROBBERY',
+  ASSAULT = 'ASSAULT'
+}

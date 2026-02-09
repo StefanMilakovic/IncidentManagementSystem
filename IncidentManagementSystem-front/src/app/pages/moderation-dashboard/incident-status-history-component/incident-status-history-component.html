@@ -1,0 +1,308 @@
+<div class="flex-grow-1" style="min-height: 0; overflow: auto;">
+  <app-navbar></app-navbar>
+
+  <div class="container mt-4 mb-4 border rounded-3 p-3 shadow">
+    <div class="card-body p-4">
+
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+          <h3 class="mb-0 fw-semibold d-flex align-items-center gap-2">
+            Status History
+          </h3>
+          <p class="text-muted small mb-0">Track all incident status changes</p>
+        </div>
+        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+          {{ filteredHistory.length }} Records
+        </span>
+      </div>
+
+      <!-- Search -->
+      <div class="mb-3">
+        <div class="position-relative">
+          <input
+            type="text"
+            class="form-control form-control-sm border-1 bg-light ps-5"
+            placeholder="Search by Incident ID or Status..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilter()">
+          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+        </div>
+      </div>
+
+      <!-- Status Filter Chips -->
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <button
+          type="button"
+          class="btn btn-sm rounded-pill px-3"
+          [class.btn-primary]="selectedStatusFilter === null"
+          [class.bg-light]="selectedStatusFilter !== null"
+          [class.text-dark]="selectedStatusFilter !== null"
+          (click)="setStatusFilter(null)">
+          All
+        </button>
+        <button
+          *ngFor="let status of incidentStatuses"
+          type="button"
+          class="btn btn-sm rounded-pill px-3"
+          [class.btn-primary]="selectedStatusFilter === status"
+          [class.bg-light]="selectedStatusFilter !== status"
+          [class.text-dark]="selectedStatusFilter !== status"
+          (click)="setStatusFilter(status)">
+          {{ getStatusLabel(status) }}
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="bg-light">
+          <tr>
+            <th class="text-muted text-uppercase fw-semibold small px-3 py-3 border-0">ID</th>
+            <th class="text-muted text-uppercase fw-semibold small px-3 py-3 border-0">Incident ID</th>
+            <th class="text-muted text-uppercase fw-semibold small px-3 py-3 border-0">Status</th>
+            <th class="text-muted text-uppercase fw-semibold small px-3 py-3 border-0">Changed At</th>
+            <th class="text-muted text-uppercase fw-semibold small px-3 py-3 border-0">Moderator ID</th>
+            <th class="text-muted text-uppercase fw-semibold small px-3 py-3 border-0 text-center">Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let history of pagedHistory" class="border-bottom">
+            <td class="px-3 py-3">
+              <span class="badge bg-secondary bg-opacity-10 text-secondary fw-normal">#{{ history.id }}</span>
+            </td>
+            <td class="px-3 py-3">
+              <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">#{{ history.incidentId }}</span>
+            </td>
+            <td class="px-3 py-3">
+              <span class="badge rounded-pill {{ getStatusBadgeClass(history.status) }}">
+                {{ getStatusLabel(history.status) }}
+              </span>
+            </td>
+            <td class="px-3 py-3">
+              <span class="text-muted small">{{ history.statusChangeTime | date:'dd.MM.yyyy HH:mm' }}</span>
+            </td>
+            <td class="px-3 py-3">
+              <span *ngIf="history.moderatorId" class="text-muted small">Moderator #{{ history.moderatorId }}</span>
+              <span *ngIf="!history.moderatorId" class="text-muted small fst-italic">System</span>
+            </td>
+            <td class="px-3 py-3 text-center">
+              <div class="d-flex gap-2 justify-content-center">
+                <button
+                  type="button"
+                  class="btn d-flex align-items-center gap-2 btn-sm bg-primary bg-opacity-10 text-dark rounded-pill border-0 px-3 py-2"
+                  (click)="openDetail(history)">
+                  <i class="bi bi-eye"></i>
+                  View
+                </button>
+                <button
+                  type="button"
+                  class="btn d-flex align-items-center gap-2 btn-sm bg-danger bg-opacity-10 text-dark rounded-pill border-0 px-3 py-2"
+                  (click)="confirmDelete(history)">
+                  <i class="bi bi-trash"></i>
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="pagedHistory.length === 0">
+            <td colspan="6" class="text-center py-5">
+              <div class="text-muted">
+                <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                <p class="mb-0 fw-semibold">No history records found</p>
+                <p class="small mb-0">Try adjusting your search or filter criteria</p>
+              </div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <nav *ngIf="totalPages > 1" class="mt-4 pt-3">
+        <ul class="pagination justify-content-center mb-0">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button type="button" class="page-link border-0 rounded-pill px-3 me-1" (click)="changePage(currentPage - 1)">
+              <span>&laquo; Previous</span>
+            </button>
+          </li>
+          <li class="page-item mx-1" *ngFor="let page of pagesArray" [class.active]="page === currentPage">
+            <button
+              type="button"
+              class="page-link border-0 rounded-circle"
+              [class.bg-primary]="page === currentPage"
+              [class.text-white]="page === currentPage"
+              [class.bg-light]="page !== currentPage"
+              (click)="changePage(page)"
+              style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+              {{ page }}
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button type="button" class="page-link border-0 rounded-pill px-3 ms-1" (click)="changePage(currentPage + 1)">
+              <span>Next &raquo;</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- Detail Dialog -->
+  @if (showDetailDialog && selectedHistory) {
+    <div
+      class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+      style="background: rgba(0,0,0,0.5); z-index: 2000;"
+      (click)="closeDetail()">
+
+      <div
+        class="bg-white rounded-3 shadow-lg"
+        style="width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;"
+        (click)="$event.stopPropagation()">
+
+        <!-- Dialog Header -->
+        <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+          <div class="d-flex align-items-center gap-3">
+            <h4 class="mb-0 fw-semibold">History Record #{{ selectedHistory.id }}</h4>
+          </div>
+          <button type="button" class="btn-close" (click)="closeDetail()" aria-label="Close"></button>
+        </div>
+
+        <!-- Dialog Body -->
+        <div class="p-4">
+
+          <!-- Info row -->
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <p class="text-muted small mb-1 fw-semibold text-uppercase">Incident ID</p>
+              <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 fw-semibold">
+                #{{ selectedHistory.incidentId }}
+              </span>
+            </div>
+            <div class="col-md-6">
+              <p class="text-muted small mb-1 fw-semibold text-uppercase">Status</p>
+              <span class="badge rounded-pill {{ getStatusBadgeClass(selectedHistory.status) }} px-3 py-2">
+                {{ getStatusLabel(selectedHistory.status) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <p class="text-muted small mb-1 fw-semibold text-uppercase">Changed At</p>
+              <span class="fw-semibold text-dark">{{ selectedHistory.statusChangeTime | date:'dd.MM.yyyy HH:mm:ss' }}</span>
+            </div>
+            <div class="col-md-6">
+              <p class="text-muted small mb-1 fw-semibold text-uppercase">Moderator</p>
+              @if (selectedHistory.moderatorId) {
+                <span class="fw-semibold text-dark">Moderator #{{ selectedHistory.moderatorId }}</span>
+              } @else {
+                <span class="text-muted fst-italic">System Generated</span>
+              }
+            </div>
+          </div>
+
+          <!-- Related Incident Info -->
+          @if (relatedIncident) {
+            <div class="border-top pt-4">
+              <p class="text-muted small mb-2 fw-semibold text-uppercase">Related Incident Details</p>
+              <div class="bg-light rounded-3 p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="text-muted small">Type:</span>
+                  <span class="badge rounded-pill {{ getTypeBadgeClass(relatedIncident.type) }}">
+                    {{ getIncidentTypeLabel(relatedIncident.type) }}
+                  </span>
+                </div>
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="text-muted small">Current Status:</span>
+                  <span class="badge rounded-pill {{ getStatusBadgeClass(relatedIncident.status) }}">
+                    {{ getStatusLabel(relatedIncident.status) }}
+                  </span>
+                </div>
+                <div class="d-flex justify-content-between align-items-start">
+                  <span class="text-muted small">Reported At:</span>
+                  <span class="small text-dark">{{ relatedIncident.reportedAt | date:'dd.MM.yyyy HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
+          }
+
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Dialog -->
+  @if (showDeleteConfirmDialog && historyToDelete) {
+    <div
+      class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+      style="background: rgba(0, 0, 0, 0.5); z-index: 2001;"
+      (click)="closeDeleteConfirm()">
+
+      <div
+        class="bg-white rounded-3 shadow-lg text-center p-4"
+        style="width: 90%; max-width: 500px;"
+        (click)="$event.stopPropagation()">
+
+        <div class="mb-4">
+          <i class="bi bi-exclamation-triangle text-warning fs-1"></i>
+        </div>
+
+        <h4 class="fw-semibold mb-3">Delete History Record?</h4>
+
+        <p class="text-muted mb-4">
+          Are you sure you want to delete history record <strong>#{{ historyToDelete.id }}</strong> for incident <strong>#{{ historyToDelete.incidentId }}</strong>?
+          This action cannot be undone.
+        </p>
+
+        <div class="d-flex gap-2 justify-content-center">
+          <button
+            type="button"
+            class="btn btn-sm bg-light rounded-pill px-4"
+            (click)="closeDeleteConfirm()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm bg-danger bg-opacity-25 text-dark rounded-pill px-4 d-flex align-items-center gap-2"
+            (click)="deleteHistory()">
+            <i class="bi bi-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Success Dialog -->
+  @if (showSuccessDialog) {
+    <div
+      class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+      style="background: rgba(0, 0, 0, 0.5); z-index: 2001;"
+      (click)="closeSuccessDialog()">
+
+      <div
+        class="bg-white rounded-3 shadow-lg text-center p-4"
+        style="width: 90%; max-width: 500px;"
+        (click)="$event.stopPropagation()">
+
+        <div class="mb-4">
+          <i class="bi bi-check-circle text-success fs-1"></i>
+        </div>
+
+        <h4 class="fw-semibold mb-3">{{ successMessage }}</h4>
+
+        <button
+          type="button"
+          class="btn btn-sm bg-success bg-opacity-25 rounded-pill px-4 d-flex align-items-center justify-content-center gap-2 mx-auto"
+          (click)="closeSuccessDialog()">
+          <i class="bi bi-check-lg"></i>
+          Got it
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

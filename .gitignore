@@ -32,3 +32,7 @@ Thumbs.db
 *.yml
 *.yaml
 
+# Java build
+**/out/
+**/target/
+

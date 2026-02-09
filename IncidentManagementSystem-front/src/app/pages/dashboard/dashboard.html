@@ -1,0 +1,100 @@
+<div style="display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
+  <app-header></app-header>
+
+  <div class="incidents-container" style="flex: 1; position: relative; overflow: hidden; min-height: 0;">
+    <app-map-view
+      [incidents]="filteredIncidents"
+      [enableLocationPicker]="isSelectingLocation"
+      >
+    </app-map-view>
+
+    <button
+      *ngIf="!isSelectingLocation && !showFilterDialog"
+      class="btn position-absolute bg-primary text-white shadow d-flex align-items-center gap-2 rounded-pill px-4 py-2"
+      style="top: 24px; right: 24px; z-index: 1000;"
+      (click)="toggleFilterDialog()"
+      title="Filter Incidents">
+      <i class="bi bi-funnel"></i>
+      <span>Filter</span>
+    </button>
+
+    <div
+      *ngIf="!isSelectingLocation"
+      class="position-absolute bg-white shadow-lg rounded-3 overflow-auto"
+      [class.d-none]="!showFilterDialog"
+      style="top: 24px; right: 24px; width: 350px; max-height: calc(100vh - 120px); z-index: 999;">
+
+      <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+        <h5 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2 text-primary"></i>
+          Filters
+        </h5>
+        <button
+          class="btn-close"
+          (click)="toggleFilterDialog()"
+          aria-label="Close"></button>
+      </div>
+
+      <div class="p-3">
+        <div class="mb-4">
+          <h6 class="text-muted text-uppercase fw-semibold small mb-3">Time Period</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              *ngFor="let range of timeRanges"
+              class="btn btn-sm rounded-pill bg-primary bg-opacity-75 px-3"
+              [class.btn-primary]="selectedTimeRange === range.value"
+              [class.bg-light]="selectedTimeRange !== range.value"
+              [class.text-dark]="selectedTimeRange !== range.value"
+              (click)="setTimeRange(range.value)">
+              {{range.label}}
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="text-muted text-uppercase fw-semibold small mb-3">Incident Type</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              *ngFor="let type of incidentTypes"
+              class="btn btn-sm rounded-pill px-3"
+              [class.btn-success]="selectedTypes.includes(type)"
+              [class.bg-success]="selectedTypes.includes(type)"
+              [class.bg-opacity-10]="selectedTypes.includes(type)"
+              [class.text-success]="selectedTypes.includes(type)"
+              [class.bg-light]="!selectedTypes.includes(type)"
+              [class.text-dark]="!selectedTypes.includes(type)"
+              (click)="toggleTypeFilter(type)">
+              {{getIncidentTypeLabel(type)}}
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <h6 class="text-muted text-uppercase fw-semibold small mb-3">Incident Subtype</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              *ngFor="let subtype of incidentSubtypes"
+              class="btn btn-sm rounded-pill px-3"
+              [class.btn-warning]="selectedSubtypes.includes(subtype)"
+              [class.bg-warning]="selectedSubtypes.includes(subtype)"
+              [class.bg-opacity-10]="selectedSubtypes.includes(subtype)"
+              [class.text-warning]="selectedSubtypes.includes(subtype)"
+              [class.bg-light]="!selectedSubtypes.includes(subtype)"
+              [class.text-dark]="!selectedSubtypes.includes(subtype)"
+              (click)="toggleSubtypeFilter(subtype)">
+              {{getIncidentSubtypeLabel(subtype)}}
+            </button>
+          </div>
+        </div>
+
+        <button
+          class="btn btn-sm bg-danger bg-opacity-10 text-dark rounded-pill w-100 d-flex align-items-center justify-content-center gap-2"
+          (click)="clearFilters()">
+          <i class="bi bi-x-circle"></i>
+          Clear All Filters
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

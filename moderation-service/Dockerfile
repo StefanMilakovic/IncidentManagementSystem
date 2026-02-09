@@ -1,16 +1,5 @@
-# Use the official JDK image
-FROM openjdk:17-jdk-slim
-
-# Folder inside the container
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
-# Copy jar file (You need first to build the jar)
-COPY target/moderation-service-*.jar app.jar
-
-ARG DEFAULT_PORT=8082
-
-ENV PORT $DEFAULT_PORT
-
-EXPOSE $PORT
-
+COPY out/artifacts/moderation_service_jar/moderation-service.jar app.jar
+EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]
