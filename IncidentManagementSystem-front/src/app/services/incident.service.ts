@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import {Observable} from 'rxjs';
 import { Incident } from '../models/incident.model';
 import {IncidentStatus} from '../models/enums/incident-status.enum';
+import {environment} from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,8 @@ import {IncidentStatus} from '../models/enums/incident-status.enum';
 
 export class IncidentService {
 
-  private apiUrl = 'http://localhost:8080/api/v1/incidents';
+  //private apiUrl = 'http://localhost:8080/api/v1/incidents';
+  private apiUrl = `${environment.apiUrl}/incidents`;
 
   constructor(private http: HttpClient) {}
 

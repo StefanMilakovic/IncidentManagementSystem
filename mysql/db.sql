@@ -4,6 +4,14 @@
 -- ------------------------------------------------------
 -- Server version	8.0.43
 
+
+CREATE DATABASE IF NOT EXISTS auth_db;
+CREATE DATABASE IF NOT EXISTS incident_db;
+CREATE DATABASE IF NOT EXISTS moderation_db;
+
+
+USE auth_db;
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -18,6 +26,8 @@
 --
 -- Table structure for table `user`
 --
+
+
 
 DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -50,6 +60,9 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+
+USE moderation_db;
 
 -- Dump completed on 2026-02-08 21:07:32
 -- MySQL dump 10.13  Distrib 8.0.43, for Win64 (x86_64)
@@ -105,6 +118,9 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+
+USE incident_db;
 -- Dump completed on 2026-02-08 21:07:32
 -- MySQL dump 10.13  Distrib 8.0.43, for Win64 (x86_64)
 --

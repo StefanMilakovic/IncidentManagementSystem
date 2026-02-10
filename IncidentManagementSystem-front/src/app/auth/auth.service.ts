@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, BehaviorSubject, catchError, of, map, shareReplay } from 'rxjs';
+import {environment} from '../../environments/environment';
 
 export interface CurrentUser {
   id: number;
@@ -11,7 +12,11 @@ export interface CurrentUser {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/auth';
+
+  private readonly BASE_URL = environment.apiUrl;
+  private readonly API_URL = `${this.BASE_URL}/auth`;
+  private readonly OAUTH_URL = environment.oauthUrl;
+  //private readonly API_URL = 'http://localhost:8080/api/v1/auth';
 
   private loggedInSubject = new BehaviorSubject<boolean>(false);
   private currentUserRoleSubject = new BehaviorSubject<string | null>(null);
@@ -20,7 +25,7 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   loginWithGoogle(): void {
-    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    window.location.href = this.OAUTH_URL;
   }
 
   fetchCurrentUser(): Observable<CurrentUser | null> {

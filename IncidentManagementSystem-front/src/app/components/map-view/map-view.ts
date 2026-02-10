@@ -1,8 +1,16 @@
 import { AfterViewInit, Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet';
 import 'leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+declare module 'leaflet' {
+  function markerClusterGroup(options?: any): L.MarkerClusterGroup;
+
+  interface MarkerClusterGroup extends L.FeatureGroup {
+    addLayer(layer: L.Layer): this;
+    removeLayer(layer: L.Layer): this;
+    clearLayers(): this;
+  }
+}
 
 import { Incident } from '../../models/incident.model';
 import { IncidentType } from '../../models/enums/incident-type.enum';
@@ -17,6 +25,7 @@ export class MapView implements AfterViewInit, OnDestroy, OnChanges {
   private map!: L.Map;
   private markers: L.Marker[] = [];
   private clickHandler: any;
+  private markerClusterGroup!: L.MarkerClusterGroup;
 
   @Input() incidents: Incident[] = [];
   @Input() enableLocationPicker: boolean = false;
@@ -107,7 +116,6 @@ export class MapView implements AfterViewInit, OnDestroy, OnChanges {
     this.addCustomZoomControl();
   }
 
-
   private enableMapClick(): void {
     if (!this.map) return;
     this.disableMapClick();
@@ -123,8 +131,6 @@ export class MapView implements AfterViewInit, OnDestroy, OnChanges {
     this.map.getContainer().style.cursor = '';
   }
 
-  private markerClusterGroup!: L.MarkerClusterGroup;
-
   public updateMarkers(): void {
     if (!this.map || !this.incidents) return;
 
@@ -132,14 +138,13 @@ export class MapView implements AfterViewInit, OnDestroy, OnChanges {
       this.map.removeLayer(this.markerClusterGroup);
     }
 
-    // Create a new marker cluster group
+    // Create a new marker cluster group using L.markerClusterGroup
     this.markerClusterGroup = L.markerClusterGroup({
-      // Customize clustering options
-      maxClusterRadius: 50, // Adjust this value to control when markers cluster
-      disableClusteringAtZoom: 13, // Disable clustering at this zoom level
-      spiderfyOnMaxZoom: true, // Spread markers in a spider-like formation when clicked
-      showCoverageOnHover: true, // Show the area covered by a cluster on hover
-      zoomToBoundsOnClick: true // Zoom to show all markers in a cluster when clicked
+      maxClusterRadius: 50,
+      disableClusteringAtZoom: 13,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: true,
+      zoomToBoundsOnClick: true
     });
 
     this.incidents.forEach(incident => {
@@ -164,13 +169,13 @@ export class MapView implements AfterViewInit, OnDestroy, OnChanges {
       marker.bindPopup(popupContent);
       this.markerClusterGroup.addLayer(marker);
     });
+
     this.map.addLayer(this.markerClusterGroup);
 
     if (this.markerClusterGroup.getLayers().length > 0) {
       this.map.fitBounds(this.markerClusterGroup.getBounds(), { padding: [50, 50] });
     }
   }
-
 
   private createIcon(color: string, emoji: string): L.DivIcon {
     return L.divIcon({

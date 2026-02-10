@@ -2,13 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { IncidentStatusHistory } from '../models/incident-status-history.model';
+import {environment} from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ModerationService {
 
-  private apiUrl = 'http://localhost:8080/api/v1/moderation';
+  //private apiUrl = 'http://localhost:8080/api/v1/moderation';
+  private apiUrl = `${environment.apiUrl}/moderation`;
+
 
   constructor(private http: HttpClient) {}
 
