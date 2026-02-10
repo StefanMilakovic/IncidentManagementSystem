@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: moderation-service
+  config:
+    import: "configserver:${CONFIG_SERVER_URL}"
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:default}

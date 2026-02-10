@@ -1,0 +1,148 @@
+services:
+  # MySQL baza podataka
+  mysql:
+    image: mysql:8.0.43
+    container_name: mysql
+    environment:
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+        - mysql-data:/var/lib/mysql
+        - ./mysql/db.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+        - ims-network
+
+  # Config Server
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    environment:
+      GIT_USERNAME: ${GIT_USERNAME}
+      GIT_PASSWORD: ${GIT_PASSWORD}
+    ports:
+      - "8889:8888"
+    networks:
+      - ims-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  # Discovery Server (Eureka)
+  discovery-server:
+    build: ./discovery-server
+    container_name: discovery-server
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8761:8761"
+    networks:
+      - ims-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL_DOCKER}
+      AUTH_DB_URL: ${AUTH_DB_URL_DOCKER}
+      AUTH_DB_USERNAME: ${AUTH_DB_USERNAME}
+      AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+    ports:
+      - "8083:8083"
+    networks:
+      - ims-network
+    depends_on:
+      - mysql
+      - config-server
+      - discovery-server
+    restart: unless-stopped
+
+  # Incident Service
+  incident-service:
+    build: ./incident-service
+    container_name: incident-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL_DOCKER}
+      INCIDENT_DB_URL: ${INCIDENT_DB_URL_DOCKER}
+      INCIDENT_DB_USERNAME: ${INCIDENT_DB_USERNAME}
+      INCIDENT_DB_PASSWORD: ${INCIDENT_DB_PASSWORD}
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+    ports:
+      - "8081:8081"
+    networks:
+      - ims-network
+    depends_on:
+      - mysql
+      - config-server
+      - discovery-server
+    restart: unless-stopped
+
+  # Moderation Service
+  moderation-service:
+    build: ./moderation-service
+    container_name: moderation-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL_DOCKER}
+      MODERATION_DB_URL: ${MODERATION_DB_URL_DOCKER}
+      MODERATION_DB_USERNAME: ${MODERATION_DB_USERNAME}
+      MODERATION_DB_PASSWORD: ${MODERATION_DB_PASSWORD}
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+    ports:
+      - "8082:8082"
+    networks:
+      - ims-network
+    depends_on:
+      - mysql
+      - config-server
+      - discovery-server
+    restart: unless-stopped
+
+  # Gateway Service
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CONFIG_SERVER_URL: ${CONFIG_SERVER_URL_DOCKER}
+      JWT_SECRET: ${JWT_SECRET}
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+    ports:
+      - "8080:8080"
+    networks:
+      - ims-network
+    depends_on:
+      - config-server
+      - discovery-server
+    restart: unless-stopped
+
+  # Angular Frontend
+  angular-app:
+    build: ./IncidentManagementSystem-front
+    container_name: angular-app
+    ports:
+      - "4200:80"
+    networks:
+      - ims-network
+    depends_on:
+      - gateway-service
+
+networks:
+  ims-network:
+    driver: bridge
+
+volumes:
+  mysql-data:

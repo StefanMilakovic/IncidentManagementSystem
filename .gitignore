@@ -29,8 +29,8 @@ Thumbs.db
 # Ignore .env files (if present)
 **/.env
 
-*.yml
-*.yaml
+#*.yml
+#*.yaml
 
 # Java build
 **/out/
