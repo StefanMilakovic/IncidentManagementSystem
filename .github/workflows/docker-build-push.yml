@@ -1,0 +1,45 @@
+name: Build and Push to DockerHub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - folder: config-server
+            tag: config-server
+          - folder: discovery-server
+            tag: discovery-server
+          - folder: auth-service
+            tag: auth-service
+          - folder: incident-service
+            tag: incident-service
+          - folder: moderation-service
+            tag: moderation-service
+          - folder: gateway-service
+            tag: gateway-service
+          - folder: IncidentManagementSystem-front
+            tag: frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.tag }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.folder }}
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.tag }}:latest
