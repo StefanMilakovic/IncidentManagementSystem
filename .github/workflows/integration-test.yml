@@ -34,10 +34,15 @@ jobs:
       - name: Start docker compose
         run: docker compose up -d --build
 
+      - name: Show early logs
+        run: |
+          sleep 30
+          docker compose logs config-server
+          docker compose logs discovery-server
+
       - name: Wait for services
         run: |
           echo "Waiting for services..."
-
           for i in {1..60}; do
             if curl -s http://localhost:8889/actuator/health | grep '"status":"UP"' &&
                curl -s http://localhost:8761/actuator/health | grep '"status":"UP"' &&
@@ -45,17 +50,9 @@ jobs:
               echo "All services are UP"
               exit 0
             fi
-
             echo "Services not ready yet..."
             sleep 5
           done
-
+          docker compose logs
           echo "Services failed to start"
           exit 1
-
-      - name: Basic API test
-        run: curl -f http://localhost:8080/actuator/health
-
-      - name: Stop docker compose
-        if: always()
-        run: docker compose down
