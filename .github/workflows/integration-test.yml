@@ -45,6 +45,12 @@ jobs:
           echo "Waiting for discovery-server..."
           timeout 120 bash -c 'until curl -sf http://localhost:8761/actuator/health; do sleep 5; done'
           echo "Discovery server UP"
+          
+      - name: Show gateway logs
+        run: |
+          sleep 10
+          docker compose logs gateway-service
+          docker compose logs auth-service
 
       - name: Wait for gateway
         run: |
