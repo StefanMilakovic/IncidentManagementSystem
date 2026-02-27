@@ -34,29 +34,27 @@ jobs:
       - name: Start docker compose
         run: docker compose up -d --build
 
-
       - name: Wait for services
-  run: |
-    echo "Waiting for services..."
+        run: |
+          echo "Waiting for services..."
 
-    for i in {1..60}; do
-      if curl -s http://localhost:8889/actuator/health | grep '"status":"UP"' &&
-         curl -s http://localhost:8761/actuator/health | grep '"status":"UP"' &&
-         curl -s http://localhost:8080/actuator/health | grep '"status":"UP"'; then
-        echo "All services are UP"
-        exit 0
-      fi
+          for i in {1..60}; do
+            if curl -s http://localhost:8889/actuator/health | grep '"status":"UP"' &&
+               curl -s http://localhost:8761/actuator/health | grep '"status":"UP"' &&
+               curl -s http://localhost:8080/actuator/health | grep '"status":"UP"'; then
+              echo "All services are UP"
+              exit 0
+            fi
 
-      echo "Services not ready yet..."
-      sleep 5
-    done
+            echo "Services not ready yet..."
+            sleep 5
+          done
 
-    echo "Services failed to start"
-    exit 1
+          echo "Services failed to start"
+          exit 1
 
       - name: Basic API test
-        run: |
-          curl -f http://localhost:8080/actuator/health
+        run: curl -f http://localhost:8080/actuator/health
 
       - name: Stop docker compose
         if: always()
