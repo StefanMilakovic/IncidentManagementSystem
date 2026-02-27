@@ -34,19 +34,25 @@ jobs:
       - name: Start docker compose
         run: docker compose up -d --build
 
-      # Čekamo da gateway health endpoint vrati UP
-      - name: Wait for Gateway to be ready
-        run: |
-          echo "Waiting for gateway..."
-          for i in {1..30}; do
-            if curl -s http://localhost:8080/actuator/health | grep '"status":"UP"' ; then
-              echo "Gateway is UP"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "Gateway did not start in time"
-          exit 1
+
+      - name: Wait for services
+  run: |
+    echo "Waiting for services..."
+
+    for i in {1..60}; do
+      if curl -s http://localhost:8889/actuator/health | grep '"status":"UP"' &&
+         curl -s http://localhost:8761/actuator/health | grep '"status":"UP"' &&
+         curl -s http://localhost:8080/actuator/health | grep '"status":"UP"'; then
+        echo "All services are UP"
+        exit 0
+      fi
+
+      echo "Services not ready yet..."
+      sleep 5
+    done
+
+    echo "Services failed to start"
+    exit 1
 
       - name: Basic API test
         run: |
