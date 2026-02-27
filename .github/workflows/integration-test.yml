@@ -1,0 +1,57 @@
+name: Integration Test (Docker Compose)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    env:
+      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      CONFIG_SERVER_URL_DOCKER: ${{ secrets.CONFIG_SERVER_URL_DOCKER }}
+      AUTH_DB_URL_DOCKER: ${{ secrets.AUTH_DB_URL_DOCKER }}
+      AUTH_DB_USERNAME: ${{ secrets.AUTH_DB_USERNAME }}
+      AUTH_DB_PASSWORD: ${{ secrets.AUTH_DB_PASSWORD }}
+      INCIDENT_DB_URL_DOCKER: ${{ secrets.INCIDENT_DB_URL_DOCKER }}
+      INCIDENT_DB_USERNAME: ${{ secrets.INCIDENT_DB_USERNAME }}
+      INCIDENT_DB_PASSWORD: ${{ secrets.INCIDENT_DB_PASSWORD }}
+      MODERATION_DB_URL_DOCKER: ${{ secrets.MODERATION_DB_URL_DOCKER }}
+      MODERATION_DB_USERNAME: ${{ secrets.MODERATION_DB_USERNAME }}
+      MODERATION_DB_PASSWORD: ${{ secrets.MODERATION_DB_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      GATEWAY_INTERNAL_SECRET: ${{ secrets.GATEWAY_INTERNAL_SECRET }}
+      GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+      GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start docker compose
+        run: docker compose up -d --build
+
+      # Čekamo da gateway health endpoint vrati UP
+      - name: Wait for Gateway to be ready
+        run: |
+          echo "Waiting for gateway..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/actuator/health | grep '"status":"UP"' ; then
+              echo "Gateway is UP"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Gateway did not start in time"
+          exit 1
+
+      - name: Basic API test
+        run: |
+          curl -f http://localhost:8080/actuator/health
+
+      - name: Stop docker compose
+        if: always()
+        run: docker compose down
