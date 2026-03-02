@@ -25,8 +25,8 @@ jobs:
       GATEWAY_INTERNAL_SECRET: ${{ secrets.GATEWAY_INTERNAL_SECRET }}
       GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
       GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
-      GOOGLE_CLIENT_ID: "test"
-      GOOGLE_CLIENT_SECRET: "test"
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
     steps:
       - name: Checkout code
