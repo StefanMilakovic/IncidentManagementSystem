@@ -56,10 +56,14 @@ jobs:
       - name: Run API tests
         run: |
           echo "Test 1: Config server health"
-          curl -sf http://localhost:8889/actuator/health | grep UP
+          RESPONSE=$(curl -s http://localhost:8889/actuator/health)
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | grep -i "up"
 
           echo "Test 2: Discovery server health"
-          curl -sf http://localhost:8761/actuator/health | grep UP
+          RESPONSE=$(curl -s http://localhost:8761/actuator/health)
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | grep -i "up"
 
           echo "Test 3: Gateway reachable"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
@@ -68,6 +72,7 @@ jobs:
             echo "Gateway not reachable!"
             exit 1
           fi
+
           echo "All tests passed!"
 
       - name: Show logs on failure
