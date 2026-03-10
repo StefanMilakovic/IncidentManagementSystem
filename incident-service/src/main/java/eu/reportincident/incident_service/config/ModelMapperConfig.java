@@ -6,12 +6,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ModelMapperConfig {
-
-    //ModelMapper je biblioteka koja:
-    //  kopira podatke između Entity ↔ DTO
-    //  automatski mapira polja sa istim imenima
-
-
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();

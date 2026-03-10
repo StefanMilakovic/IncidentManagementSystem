@@ -92,8 +92,21 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             return true;
         }
 
+        /*
         if (path.startsWith("/api/v1/incidents/approved")) {
             return method == HttpMethod.GET;
+        }
+
+         */
+
+        // GET approved incidenata je javno
+        if (path.startsWith("/api/v1/incidents/approved") && method == HttpMethod.GET) {
+            return true;
+        }
+
+        // POST /api/v1/incidents je javno
+        if (path.equals("/api/v1/incidents") && method == HttpMethod.POST) {
+            return true;
         }
 
         return securityProperties.getPublicEndpoints().stream()
